@@ -36,7 +36,7 @@ public class Image {
     @JsonIgnore
     private boolean isDeleted;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(
             name = "image_objects",
             joinColumns = @JoinColumn(name = "image_id"),

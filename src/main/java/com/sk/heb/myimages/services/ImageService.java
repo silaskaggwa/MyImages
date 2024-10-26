@@ -12,6 +12,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,37 +42,55 @@ public class ImageService {
 
     public Image process(String label, byte[] fileBytes) {
         Image newImage = new Image(label);
+
+        // Step 1: Upload image asynchronously
         CompletableFuture<ResponseEntity<ImageUploadResponse>> uploadFuture = imageUploadService.uploadImage(fileBytes);
-        CompletableFuture<ResponseEntity<ImageTagResponse>> objectsInImageFuture = uploadFuture.thenCompose(
-                uploadResponse -> {
 
-                    ImageUploadResponse imageUploadResponse = uploadResponse.getBody();
+        // Step 2: Process image once upload completes and extract tags
+        CompletableFuture<Image> processedImageFuture = uploadFuture.thenCompose(uploadResponse -> {
+            // Extract image URLs
+            ImageUploadResponse uploadResponseBody = getResponseBody(uploadResponse);
+            if (uploadResponseBody == null) {
+                throw new RuntimeException("Upload failed, response body is null");
+            }
 
-                    assert imageUploadResponse != null;
-                    String imageUrl = imageUploadResponse.getImage().getUrl();
-                    String thumbUrl = imageUploadResponse.getImage().getThumb().getUrl();
-                    String mediumUrl = imageUploadResponse.getImage().getMedium().getUrl();
-                    System.out.println("imageUrl="+imageUrl);
-                    System.out.println("thumbUrl="+thumbUrl);
-                    System.out.println("mediumUrl="+mediumUrl);
+            String mediumUrl = uploadResponseBody.getImage().getMedium().getUrl();
+            newImage.setImageUrl(mediumUrl);
+            newImage.setThumbnailUrl(uploadResponseBody.getImage().getThumb().getUrl());
 
-                    newImage.setImageUrl(mediumUrl);
-                    newImage.setThumbnailUrl(thumbUrl);
+            // Step 3: Get objects in image based on medium URL
+            return objectsInImageService.getObjectsInImage(mediumUrl)
+                    .thenApply(objectsInImageResponse -> {
+                        List<String> tags = extractValidTags(getResponseBody(objectsInImageResponse));
+                        return saveImage(newImage, tags);
+                    });
+        });
 
-                    return objectsInImageService.getObjectsInImage(mediumUrl);
-                });
+        // Step 4: Return processed image or handle exception
         try {
-            ImageTagResponse objectsInImageResp = objectsInImageFuture.get().getBody();
-            assert objectsInImageResp != null;
-            List<String> objectsInImage = objectsInImageResp.getResult().getTags().stream()
-                    .filter(tag -> tag.getConfidence() > MIN_CONFIDENCE)
-                    .map(tag -> tag.getTag().getEn())
-                    .toList();
-
-            return saveImage(newImage, objectsInImage);
+            return processedImageFuture.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error processing image", e);
         }
+    }
+
+    // Helper method to safely extract response body
+    private <T> T getResponseBody(ResponseEntity<T> responseEntity) {
+        if (responseEntity == null || responseEntity.getBody() == null) {
+            return null;
+        }
+        return responseEntity.getBody();
+    }
+
+    // Helper method to extract valid tags from the image response
+    private List<String> extractValidTags(ImageTagResponse tagResponse) {
+        if (tagResponse == null || tagResponse.getResult() == null) {
+            return Collections.emptyList();
+        }
+        return tagResponse.getResult().getTags().stream()
+                .filter(tag -> tag.getConfidence() > MIN_CONFIDENCE)
+                .map(tag -> tag.getTag().getEn())
+                .toList();
     }
 
     public Image saveImage(Image image, List<String> objectNames) {
