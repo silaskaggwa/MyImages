@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/images")
@@ -17,10 +19,22 @@ public class ImageController {
     @Autowired
     private ImageService imageService;
 
-//    @GetMapping("/images")
-//    public List<Image> getAllImages(){
-//
-//    }
+    @GetMapping
+    public ResponseEntity<List<Image>> getAllImages(@RequestParam(required = false) String objects){
+        List<Image> images;
+        if (objects != null) {
+            Set<String> objectsSet = Set.of(objects.split(","));
+            images = imageService.getImagesByObjectNames(objectsSet);
+        } else {
+            images = imageService.getAll();
+        }
+        return ResponseEntity.ok(images);
+    }
+
+    @GetMapping("/{imageId}")
+    public ResponseEntity<Image> getImage(@PathVariable("imageId") long id) {
+        return ResponseEntity.ok(imageService.getImageById(id).orElse(null));
+    }
 
     @PostMapping
     public ResponseEntity<Image> saveImage(
