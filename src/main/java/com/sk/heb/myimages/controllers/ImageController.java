@@ -2,6 +2,7 @@ package com.sk.heb.myimages.controllers;
 
 import com.sk.heb.myimages.entity.Image;
 import com.sk.heb.myimages.services.ImageService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class ImageController {
     private ImageService imageService;
 
     @GetMapping
+    @Operation(summary = "Get all Images or only images with specified objects")
     public ResponseEntity<List<Image>> getAllImages(@RequestParam(required = false) String objects){
         List<Image> images;
         if (objects != null) {
@@ -32,11 +34,13 @@ public class ImageController {
     }
 
     @GetMapping("/{imageId}")
+    @Operation(summary = "Get image by id")
     public ResponseEntity<Image> getImage(@PathVariable("imageId") long id) {
         return ResponseEntity.ok(imageService.getImageById(id).orElse(null));
     }
 
     @PostMapping
+    @Operation(summary = "Upload and save new image")
     public ResponseEntity<Image> saveImage(
             @RequestPart("file") MultipartFile file,
             @RequestPart(name = "label", required = false) String label) {
