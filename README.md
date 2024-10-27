@@ -12,6 +12,7 @@ This app provides an API to upload an images, analyzes them for object detection
 
 ## API Specification
 Swagger: http://localhost:8080/swagger-ui/index.html
+
 ```GET /images```
 - Returns HTTP 200 OK with a JSON response containing all image metadata. 
 
