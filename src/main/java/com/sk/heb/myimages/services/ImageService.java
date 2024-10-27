@@ -12,10 +12,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -40,13 +37,13 @@ public class ImageService {
     @Value("${com.sk.heb.imagga.min_confidence}")
     private int MIN_CONFIDENCE;
 
-    public Image process(String label, byte[] fileBytes) {
+    public Image process(String label, boolean detectObjects, byte[] fileBytes) {
         Image newImage = new Image(label);
 
-        // Step 1: Upload image asynchronously
+        // Upload image asynchronously
         CompletableFuture<ResponseEntity<ImageUploadResponse>> uploadFuture = imageUploadService.uploadImage(fileBytes);
 
-        // Step 2: Process image once upload completes and extract tags
+        // Process image once upload completes and extract tags
         CompletableFuture<Image> processedImageFuture = uploadFuture.thenCompose(uploadResponse -> {
             // Extract image URLs
             ImageUploadResponse uploadResponseBody = getResponseBody(uploadResponse);
@@ -58,7 +55,11 @@ public class ImageService {
             newImage.setImageUrl(mediumUrl);
             newImage.setThumbnailUrl(uploadResponseBody.getImage().getThumb().getUrl());
 
-            // Step 3: Get objects in image based on medium URL
+            if (!detectObjects) {
+                return CompletableFuture.completedFuture(saveImage(newImage, new ArrayList<>()));
+            }
+
+            // Get objects in image based on URL
             return objectsInImageService.getObjectsInImage(mediumUrl)
                     .thenApply(objectsInImageResponse -> {
                         List<String> tags = extractValidTags(getResponseBody(objectsInImageResponse));
@@ -66,7 +67,7 @@ public class ImageService {
                     });
         });
 
-        // Step 4: Return processed image or handle exception
+        // Return processed image or handle exception
         try {
             return processedImageFuture.get();
         } catch (InterruptedException | ExecutionException e) {

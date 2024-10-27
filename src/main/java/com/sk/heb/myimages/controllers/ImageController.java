@@ -1,5 +1,6 @@
 package com.sk.heb.myimages.controllers;
 
+import com.sk.heb.myimages.ImageMetadata;
 import com.sk.heb.myimages.entity.Image;
 import com.sk.heb.myimages.services.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,19 +44,21 @@ public class ImageController {
     @Operation(summary = "Upload and save new image")
     public ResponseEntity<Image> saveImage(
             @RequestPart("file") MultipartFile file,
-            @RequestPart(name = "label", required = false) String label) {
+            @RequestPart(name = "metadata", required = false) ImageMetadata metadata) {
 
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(null);
         }
 
         String fileName = file.getOriginalFilename();
-        String imageLabel = Optional.ofNullable(label).orElse(fileName);
+        String imageLabel = metadata != null && metadata.getLabel() != null ? metadata.getLabel() : fileName;
+        boolean detectObjectsInImage = metadata != null && metadata.getEnableObjectDetection() != null
+                ? metadata.getEnableObjectDetection() : false;
 
         Image newImage = null;
         try {
             byte[] fileContent = file.getBytes();
-            newImage = imageService.process(imageLabel, fileContent);
+            newImage = imageService.process(imageLabel, detectObjectsInImage, fileContent);
         } catch (IOException e) {
             System.out.println("File upload failed: " + e.getMessage());
             return ResponseEntity.status(500).body(null);
