@@ -1,6 +1,8 @@
 package com.sk.heb.myimages.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -19,6 +21,8 @@ public class ImageTagResponse {
 
     @Getter
     @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class TagWrapper {
         private double confidence;
         private Tag tag;
@@ -26,6 +30,8 @@ public class ImageTagResponse {
 
     @Getter
     @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Tag {
         private String en;
     }

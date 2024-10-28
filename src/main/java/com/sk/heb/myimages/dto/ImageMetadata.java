@@ -1,4 +1,4 @@
-package com.sk.heb.myimages;
+package com.sk.heb.myimages.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

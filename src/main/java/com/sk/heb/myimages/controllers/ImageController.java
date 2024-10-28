@@ -1,6 +1,6 @@
 package com.sk.heb.myimages.controllers;
 
-import com.sk.heb.myimages.ImageMetadata;
+import com.sk.heb.myimages.dto.ImageMetadata;
 import com.sk.heb.myimages.entity.Image;
 import com.sk.heb.myimages.services.ImageService;
 import io.swagger.v3.oas.annotations.Operation;

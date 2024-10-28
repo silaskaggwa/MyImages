@@ -1,6 +1,8 @@
 package com.sk.heb.myimages.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
@@ -30,12 +32,16 @@ public class ImageUploadResponse {
 
     @Getter
     @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Thumb {
         private String url;
     }
 
     @Getter
     @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Medium {
         private String url;
     }
