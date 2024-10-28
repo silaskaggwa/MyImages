@@ -30,4 +30,6 @@ image, and an optional field to enable object detection.
 - Returns a HTTP 200 OK with a JSON response body including the image data, its label
 (generate one if the user did not provide it), its identifier provided by the persistent data
 store, and any objects detected (if object detection was enabled).
- 
+
+ ## Testing using Postman
+ <img width="1010" alt="Screen Shot 2024-10-27 at 10 16 48 PM" src="https://github.com/user-attachments/assets/43ad54cc-d50e-487f-8301-097aecbbfaa5">
