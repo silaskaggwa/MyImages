@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -37,7 +36,9 @@ public class ImageController {
     @GetMapping("/{imageId}")
     @Operation(summary = "Get image by id")
     public ResponseEntity<Image> getImage(@PathVariable("imageId") long id) {
-        return ResponseEntity.ok(imageService.getImageById(id).orElse(null));
+        return imageService.getImageById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -47,7 +48,7 @@ public class ImageController {
             @RequestPart(name = "metadata", required = false) ImageMetadata metadata) {
 
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().build();
         }
 
         String fileName = file.getOriginalFilename();
@@ -61,7 +62,7 @@ public class ImageController {
             newImage = imageService.process(imageLabel, detectObjectsInImage, fileContent);
         } catch (IOException e) {
             System.out.println("File upload failed: " + e.getMessage());
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(500).build();
         }
         return ResponseEntity.ok(newImage);
     }
