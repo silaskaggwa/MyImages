@@ -86,7 +86,7 @@ public class ImageServiceTest {
     }
 
     @Test
-    public void testProcess_withoutObjectDetection() throws ExecutionException, InterruptedException {
+    public void testProcess_withoutObjectDetection() {
         // Arrange
         String label = "Test Image No Objects";
         boolean detectObjects = false;

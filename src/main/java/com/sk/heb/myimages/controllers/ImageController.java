@@ -5,6 +5,7 @@ import com.sk.heb.myimages.entity.Image;
 import com.sk.heb.myimages.services.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,9 @@ public class ImageController {
 
     @Autowired
     private ImageService imageService;
+
+    @Autowired
+    private Set<String> allowedImageFileTypesSet;
 
     @GetMapping
     @Operation(summary = "Get all Images or only images with specified objects")
@@ -47,7 +51,8 @@ public class ImageController {
             @RequestPart("file") MultipartFile file,
             @RequestPart(name = "metadata", required = false) ImageMetadata metadata) {
 
-        if (file.isEmpty()) {
+        String contentType = file.getContentType();
+        if (file.isEmpty() || !allowedImageFileTypesSet.contains(contentType)) {
             return ResponseEntity.badRequest().build();
         }
 
